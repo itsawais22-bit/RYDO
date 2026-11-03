@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RYDO | Next-Gen Fair-Fare Mobility</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <!-- MAIN NAVBAR -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="javascript:void(0)" class="logo" onclick="switchView('home')">
+                <span class="logo-accent">RY</span>DO
+                <span class="badge-tag">PK</span>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="nav-menu" id="navMenu">
+                <a href="javascript:void(0)" onclick="switchView('home')" class="nav-link active" id="navHome">Home</a>
+                <a href="javascript:void(0)" onclick="switchView('about')" class="nav-link" id="navAbout">About Us</a>
+                <a href="javascript:void(0)" onclick="switchView('home'); scrollToSection('services');" class="nav-link">Services</a>
+                <a href="javascript:void(0)" onclick="switchView('history')" class="nav-link" id="navHistory">Ride History</a>
+                <a href="javascript:void(0)" onclick="switchView('driverDashboard')" class="nav-link" id="navDriver">Driver Hub</a>
+                <a href="javascript:void(0)" onclick="switchView('adminDashboard')" class="nav-link" id="navAdmin">Admin</a>
+                <a href="javascript:void(0)" onclick="switchView('contact')" class="nav-link" id="navContact">Contact Us</a>
+            </nav>
+
+            <!-- Actions (Auth, Notification Bell, User Profile) -->
+            <div class="nav-actions">
+                <div class="notif-wrapper">
+                    <button class="notif-btn" onclick="toggleNotifications()" aria-label="Notifications">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge">0</span>
+                    </button>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-head">
+                            <span>Notifications</span>
+                            <button class="btn-clear-all" onclick="clearAllNotifications()">Clear All</button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <p class="empty-note">No notifications yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="authNavButtons">
+                    <button class="btn-ghost" onclick="openAuthModal('login')">Login</button>
+                    <button class="btn-primary" onclick="openAuthModal('signup')">Sign Up</button>
+                </div>
+
+                <div id="userProfilePill" class="user-pill" style="display: none;" onclick="openProfileModal()">
+                    <img id="navUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Avatar">
+                    <span id="navUserName">Rider</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+
+                <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileNav()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- 1. VIEW: HOME & BOOKING SYSTEM -->
+    <!-- ========================================================================= -->
+    <div id="homeView" class="view-panel active">
+        <!-- HERO & BOOKING TERMINAL -->
+        <section class="hero-section">
+            <div class="hero-bg-glow"></div>
+            <div class="container hero-grid">
+                
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fa-solid fa-shield-halved"></i> 100% Verified Drivers • Fair Bidding
+                    </div>
+                    <h1>Safe Rides.<br><span class="gradient-text">Agreed Fares.</span><br>Zero Surge Surprises.</h1>
+                    <p class="hero-subtitle">
+                        Pakistan’s transparent mobility platform. Calculate realistic distances, set your price, negotiate directly, and track your route live on the map.
+                    </p>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">Rs. 0</span>
+                            <span class="stat-label">Surge Algorithms</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">5%</span>
+                            <span class="stat-label">Driver Commission</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">4.9 ★</span>
+                            <span class="stat-label">Safety &amp; Trust</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOOKING TERMINAL -->
+                <div class="booking-card">
+                    
+                    <!-- 1. Booking Form -->
+                    <div id="bookingTerminalForm">
+                        <div class="terminal-header">
+                            <h3><i class="fa-solid fa-compass"></i> Book Your Ride</h3>
+                            <span class="status-indicator-live">Live Rates</span>
+                        </div>
+
+                        <form id="rideForm" onsubmit="calculateAndReviewFare(event)">
+                            <div class="route-input-group">
+                                <div class="route-icons">
+                                    <span class="dot green"></span>
+                                    <span class="line"></span>
+                                    <span class="dot red"></span>
+                                </div>
+                                <div class="route-fields">
+                                    <input type="text" id="pickupLocation" placeholder="Enter Pickup Location" value="Gulberg III, Main Market" required>
+                                    <input type="text" id="dropLocation" placeholder="Enter Destination" value="DHA Phase 5, Commercial Area" required>
+                                </div>
+                                <button type="button" class="btn-swap" onclick="swapLocations()" title="Swap Pickup/Destination">
+                                    <i class="fa-solid fa-arrow-down-up-across-line"></i>
+                                </button>
+                            </div>
+
+                            <!-- Vehicle Types -->
+                            <div class="section-label">SELECT VEHICLE CATEGORY</div>
+                            <div class="vehicle-grid">
+                                <div class="vehicle-card" onclick="selectVehicle('bike', 50, 15, 2)" id="veh-bike">
+                                    <i class="fa-solid fa-motorcycle"></i>
+                                    <span class="veh-title">Bike</span>
+                                    <span class="veh-eta">2 mins away</span>
+                                    <span class="veh-rate">Rs. 15/km</span>
+                                </div>
+                                <div class="vehicle-card" onclick="selectVehicle('rickshaw', 70, 22, 3)" id="veh-rickshaw">
+                                    <i class="fa-solid fa-shield-cat"></i>
+                                    <span class="veh-title">Rickshaw</span>
+                                    <span class="veh-eta">4 mins away</span>
+                                    <span class="veh-rate">Rs. 22/km</span>
+                                </div>
+                                <div class="vehicle-card active" onclick="selectVehicle('car', 120, 35, 5)" id="veh-car">
+                                    <i class="fa-solid fa-car"></i>
+                                    <span class="veh-title">Car (AC)</span>
+                                    <span class="veh-eta">5 mins away</span>
+                                    <span class="veh-rate">Rs. 35/km</span>
+                                </div>
+                            </div>
+
+                            <!-- Trip Metrics Simulator -->
+                            <div class="metrics-row">
+                                <div class="metric-input">
+                                    <label>Distance (km)</label>
+                                    <input type="number" id="tripDistance" value="8" min="1" max="100" onchange="recalculateFare()">
+                                </div>
+                                <div class="metric-input">
+                                    <label>Wait Time (mins)</label>
+                                    <input type="number" id="tripWait" value="5" min="0" max="60" onchange="recalculateFare()">
+                                </div>
+                                <div class="metric-input">
+                                    <label>Traffic Condition</label>
+                                    <select id="trafficFactor" onchange="recalculateFare()">
+                                        <option value="1">Normal (1.0x)</option>
+                                        <option value="1.2">Heavy Rush (1.2x)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Fare Breakdown Accordion -->
+                            <div class="fare-breakdown-card">
+                                <div class="breakdown-header">
+                                    <span>Fare Component Breakdown</span>
+                                    <strong id="breakdownTotal">Rs. 430</strong>
+                                </div>
+                                <div class="breakdown-row"><span>Base Fare:</span> <span id="baseFareAmount">Rs. 120</span></div>
+                                <div class="breakdown-row"><span>Distance Charge (<span id="distValDisplay">8</span> km):</span> <span id="distFareAmount">Rs. 280</span></div>
+                                <div class="breakdown-row"><span>Waiting Time Charges:</span> <span id="waitFareAmount">Rs. 30</span></div>
+                            </div>
+
+                            <!-- Fair Negotiation Field -->
+                            <div class="negotiation-field">
+                                <div class="negotiation-head">
+                                    <label><i class="fa-solid fa-handshake"></i> Offer Your Fare (PKR)</label>
+                                    <span>Market: <strong id="marketEst">Rs. 430</strong></span>
+                                </div>
+                                <div class="stepper-box">
+                                    <button type="button" class="btn-step" onclick="adjustCustomFare(-20)">−</button>
+                                    <input type="number" id="customOfferInput" value="380">
+                                    <button type="button" class="btn-step" onclick="adjustCustomFare(20)">+</button>
+                                </div>
+                                <small>Nearby drivers will review your offer and pitch counter-offers.</small>
+                            </div>
+
+                            <!-- Payment Choice -->
+                            <div class="payment-selection">
+                                <label><input type="radio" name="payMethod" value="Cash" checked> Cash on Dropoff</label>
+                                <label><input type="radio" name="payMethod" value="Digital Wallet"> RYDO Wallet / Card</label>
+                            </div>
+
+                            <button type="submit" class="btn-submit" id="btnBroadcastRide">
+                                <span>Find Drivers &amp; Broadcast Offer</span>
+                                <i class="fa-solid fa-radar"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 2. LIVE BIDDING -->
+                    <div id="biddingRadarView" style="display: none;">
+                        <div class="radar-top">
+                            <div class="pulse-beacon"></div>
+                            <div>
+                                <h4>Broadcasting to <span id="biddingVehicleType">Car</span> Drivers...</h4>
+                                <p>Your Bid: <strong id="userOfferedFare">Rs. 380</strong> • <span id="radarDistance">8 km</span></p>
+                            </div>
+                        </div>
+
+                        <div class="incoming-bids-list" id="incomingBidsList"></div>
+
+                        <button class="btn-cancel" onclick="cancelRideSearch()">Cancel Ride Broadcast</button>
+                    </div>
+
+                    <!-- 3. ACTIVE TRIP IN-PROGRESS WITH LIVE ROUTE CANVAS -->
+                    <div id="activeTripMonitor" style="display: none;">
+                        <div class="trip-live-badge">
+                            <span class="live-dot"></span>
+                            <span id="tripProgressStatus">Driver is on the way</span>
+                        </div>
+
+                        <!-- Interactive Live Route Visualizer -->
+                        <div class="live-map-card">
+                            <div class="map-status-bar">
+                                <span><i class="fa-solid fa-location-arrow"></i> <strong>Live GPS Navigation</strong></span>
+                                <span class="map-eta-badge" id="mapEtaBadge">ETA: 3 mins (2.4 km)</span>
+                            </div>
+                            <div class="canvas-container">
+                                <canvas id="routeCanvas" width="480" height="180"></canvas>
+                                <div class="canvas-labels">
+                                    <span class="route-point start"><i class="fa-solid fa-circle-dot"></i> <span id="mapPickupLabel">Pickup</span></span>
+                                    <span class="route-point end"><i class="fa-solid fa-flag-checkered"></i> <span id="mapDropLabel">Drop-off</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pin-verification-box">
+                            <span class="pin-title"><i class="fa-solid fa-key"></i> Safety Start OTP</span>
+                            <div class="pin-digits" id="activeTripPin">7 4 1 9</div>
+                            <p>Share this PIN only with the driver after verifying vehicle license plate.</p>
+                        </div>
+
+                        <div class="active-driver-info">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Driver" class="driver-thumb">
+                            <div class="driver-details">
+                                <h4 id="activeDriverName">Asif Mehmood</h4>
+                                <span class="veh-spec" id="activeDriverVehicle">Toyota Corolla • White (LEA-4921)</span>
+                                <span class="driver-rating">4.95 ★ (840 completed rides)</span>
+                            </div>
+                            <div class="agreed-fare">
+                                <span>Agreed Fare</span>
+                                <strong id="activeAgreedFare">Rs. 380</strong>
+                            </div>
+                        </div>
+
+                        <div class="trip-actions-row">
+                            <button class="btn-action" onclick="simulateCall()"><i class="fa-solid fa-phone"></i> Call</button>
+                            <button class="btn-action" onclick="shareTripDetails()"><i class="fa-solid fa-share-nodes"></i> Share Details</button>
+                            <button class="btn-action danger" onclick="openSOSModal()"><i class="fa-solid fa-triangle-exclamation"></i> SOS</button>
+                        </div>
+
+                        <button class="btn-advance-sim" onclick="advanceTripStage()">
+                            <i class="fa-solid fa-forward-step"></i> Advance Simulation Stage
+                        </button>
+                    </div>
+
+                    <!-- 4. TRIP COMPLETED & RATING -->
+                    <div id="tripCompletionView" style="display: none;">
+                        <div class="receipt-card">
+                            <div class="receipt-icon"><i class="fa-solid fa-circle-check"></i></div>
+                            <h3>Ride Completed!</h3>
+                            <p>You have reached your destination safely.</p>
+
+                            <div class="receipt-summary">
+                                <div class="rec-row"><span>Pickup:</span> <strong id="recPickup">-</strong></div>
+                                <div class="rec-row"><span>Destination:</span> <strong id="recDrop">-</strong></div>
+                                <div class="rec-row"><span>Vehicle:</span> <strong id="recVehicle">-</strong></div>
+                                <div class="rec-row"><span>Payment:</span> <strong id="recPayment">Cash</strong></div>
+                                <div class="rec-row total"><span>Total Amount:</span> <strong id="recAmount">Rs. 380</strong></div>
+                            </div>
+
+                            <div class="rate-driver-section">
+                                <p>Rate your experience with <span id="rateDriverName">Asif</span>:</p>
+                                <div class="star-group" id="starGroup">
+                                    <i class="fa-solid fa-star active" onclick="setTripRating(1)"></i>
+                                    <i class="fa-solid fa-star active" onclick="setTripRating(2)"></i>
+                                    <i class="fa-solid fa-star active" onclick="setTripRating(3)"></i>
+                                    <i class="fa-solid fa-star active" onclick="setTripRating(4)"></i>
+                                    <i class="fa-solid fa-star active" onclick="setTripRating(5)"></i>
+                                </div>
+                                <textarea id="reviewText" placeholder="Write a compliment or review..."></textarea>
+                                <button class="btn-primary" style="width: 100%;" onclick="submitTripRating()">Submit Feedback &amp; Finish</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVICES SECTION -->
+        <section class="section" id="services">
+            <div class="container">
+                <div class="section-title text-center">
+                    <span class="sub-badge">OUR FLEET</span>
+                    <h2>Every Journey. Any Budget.</h2>
+                    <p>Select the ride that best fits your commute across Pakistan.</p>
+                </div>
+                <div class="services-grid">
+                    <div class="service-box">
+                        <div class="serv-icon"><i class="fa-solid fa-motorcycle"></i></div>
+                        <h3>RYDO Moto</h3>
+                        <p>Fastest way through city traffic at the lowest cost. Safe helmet provided for every rider.</p>
+                        <span class="price-hint">From Rs. 15/km</span>
+                    </div>
+                    <div class="service-box">
+                        <div class="serv-icon"><i class="fa-solid fa-shield-cat"></i></div>
+                        <h3>RYDO Auto</h3>
+                        <p>The iconic everyday Pakistani commute. Fits up to 3 people with affordable peer-negotiated rates.</p>
+                        <span class="price-hint">From Rs. 22/km</span>
+                    </div>
+                    <div class="service-box">
+                        <div class="serv-icon"><i class="fa-solid fa-car"></i></div>
+                        <h3>RYDO Comfort</h3>
+                        <p>Air-conditioned hatchbacks and sedans for comfortable family trips and corporate rides.</p>
+                        <span class="price-hint">From Rs. 35/km</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 2. VIEW: SEPARATE "ABOUT US" PAGE -->
+    <!-- ========================================================================= -->
+    <div id="aboutView" class="view-panel container">
+        <div class="view-header text-center">
+            <span class="sub-badge">WHO WE ARE</span>
+            <h2>Revolutionizing Urban Mobility in Pakistan</h2>
+            <p>Built to end unfair algorithmic surge pricing and high commission cuts.</p>
+        </div>
+
+        <div class="about-page-grid">
+            <div class="about-main-text">
+                <h3>Our Mission</h3>
+                <p>
+                    RYDO was founded to restore balance between riders and drivers. Traditional corporate ride apps take up to 30% of drivers' daily earnings and subject passengers to unpredictable, inflated surge pricing during rain or peak hours.
+                </p>
+                <p>
+                    With RYDO, riders propose what they are willing to pay, drivers propose transparent counter-offers, and a deal is made without any middleman manipulation.
+                </p>
+
+                <div class="about-pillars">
+                    <div class="pillar-card">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                        <h4>5% Platform Fee</h4>
+                        <p>Drivers take home 95% of every single fare. No hidden vehicle deductions.</p>
+                    </div>
+                    <div class="pillar-card">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <h4>Safety First</h4>
+                        <p>Strict biometric, driving license, and CNIC verification for every driver.</p>
+                    </div>
+                    <div class="pillar-card">
+                        <i class="fa-solid fa-users"></i>
+                        <h4>Equal Respect</h4>
+                        <p>Both riders and drivers rate each other and have equal cancellation rights.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-stats-sidebar">
+                <div class="stat-box-large">
+                    <span class="huge-number">2.4M+</span>
+                    <span class="stat-desc">Completed Rides Across Pakistan</span>
+                </div>
+                <div class="stat-box-large">
+                    <span class="huge-number">95%</span>
+                    <span class="stat-desc">Driver Earnings Retention</span>
+                </div>
+                <div class="stat-box-large">
+                    <span class="huge-number">0%</span>
+                    <span class="stat-desc">Algorithmic Surge Multipliers</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 3. VIEW: WORKING "CONTACT US" PAGE -->
+    <!-- ========================================================================= -->
+    <div id="contactView" class="view-panel container">
+        <div class="view-header text-center">
+            <span class="sub-badge">24/7 SUPPORT</span>
+            <h2>Contact RYDO Help Center</h2>
+            <p>Our rapid response desk is available 24 hours a day, 7 days a week.</p>
+        </div>
+
+        <div class="contact-page-layout">
+            <!-- Contact Details -->
+            <div class="contact-info-panel">
+                <div class="c-info-card">
+                    <i class="fa-solid fa-headset"></i>
+                    <div>
+                        <h4>Helpline (Toll-Free)</h4>
+                        <p>+92 (42) 111-7936-00</p>
+                        <small>Available 24/7 for emergency &amp; ride assistance</small>
+                    </div>
+                </div>
+                <div class="c-info-card">
+                    <i class="fa-solid fa-envelope"></i>
+                    <div>
+                        <h4>Support Email</h4>
+                        <p>support@rydo.pk</p>
+                        <small>Average response time: &lt; 15 minutes</small>
+                    </div>
+                </div>
+                <div class="c-info-card">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <h4>Headquarters</h4>
+                        <p>Level 4, Arfa Software Technology Park, Ferozepur Road, Lahore</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Working Contact Form -->
+            <div class="contact-form-panel">
+                <h3>Send Us a Message</h3>
+                <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                    <div class="form-group">
+                        <label>Your Full Name</label>
+                        <input type="text" id="contactName" placeholder="Zeeshan Ali" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Mobile Phone Number</label>
+                        <input type="tel" id="contactPhone" placeholder="03001234567" maxlength="11" oninput="enforcePakistaniPhone(this)" required>
+                        <small class="field-hint">Must be 11 digits starting with 03</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Issue Subject</label>
+                        <select id="contactSubject" required>
+                            <option value="Ride Issue">Issue with a Recent Ride</option>
+                            <option value="Fare Dispute">Fare Negotiation Dispute</option>
+                            <option value="Driver Partner">Driver Account / Verification</option>
+                            <option value="Safety Complaint">Safety / Lost Item Inquiry</option>
+                            <option value="General">General Inquiry</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Message / Details</label>
+                        <textarea id="contactMessage" rows="4" placeholder="Explain your query in detail..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">
+                        <i class="fa-solid fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 4. VIEW: RIDE HISTORY -->
+    <!-- ========================================================================= -->
+    <div id="historyView" class="view-panel container">
+        <div class="view-header">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Ride History</h2>
+            <p>Review past bookings, receipts, and driver ratings.</p>
+        </div>
+        <div class="history-list" id="historyListContainer"></div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 5. VIEW: DRIVER DASHBOARD -->
+    <!-- ========================================================================= -->
+    <div id="driverView" class="view-panel container">
+        <div class="driver-header-card">
+            <div class="driver-profile-details">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Driver" class="driver-avatar-lg">
+                <div>
+                    <h2 id="drvDashName">Asif Mehmood</h2>
+                    <p id="drvDashVehicle">Toyota Corolla • LEA-4921</p>
+                    <span class="badge-status approved" id="drvVerifStatus">Verification: Approved</span>
+                </div>
+            </div>
+            <div class="driver-online-switch">
+                <label class="switch-toggle">
+                    <input type="checkbox" id="driverOnlineToggle" checked onchange="toggleDriverStatus()">
+                    <span class="slider round"></span>
+                </label>
+                <span id="driverStatusLabel">You are ONLINE</span>
+            </div>
+        </div>
+
+        <div class="earnings-summary-grid">
+            <div class="earn-card">
+                <span class="lbl">Today's Earnings</span>
+                <h3 id="drvTodayEarn">Rs. 3,850</h3>
+                <small>6 completed rides</small>
+            </div>
+            <div class="earn-card">
+                <span class="lbl">Monthly Net (After 5% fee)</span>
+                <h3 id="drvMonthEarn">Rs. 84,200</h3>
+                <small>Platform fee: Rs. 4,430</small>
+            </div>
+            <div class="earn-card">
+                <span class="lbl">Driver Rating</span>
+                <h3>4.95 ★</h3>
+                <small>Based on 840 ratings</small>
+            </div>
+        </div>
+
+        <div class="driver-work-grid">
+            <div class="work-col">
+                <h3>Available Ride Requests in Your Area</h3>
+                <div class="driver-requests-feed" id="driverRequestsFeed"></div>
+            </div>
+            
+            <div class="work-col">
+                <h3>Driver Document Verification</h3>
+                <div class="doc-upload-box">
+                    <p>To accept rides on RYDO, your documents must be verified by our safety compliance team.</p>
+                    <form onsubmit="handleDocUpload(event)">
+                        <div class="form-group">
+                            <label>Driver Contact Mobile Phone</label>
+                            <input type="tel" id="driverDocPhone" placeholder="03XXXXXXXXX" maxlength="11" oninput="enforcePakistaniPhone(this)" required>
+                            <small class="field-hint">Must be 11 digits starting with 03</small>
+                        </div>
+                        <div class="form-group">
+                            <label>CNIC Number (13 Digits)</label>
+                            <input type="text" placeholder="35201-XXXXXXXX-X" required value="35201-9874561-1">
+                        </div>
+                        <div class="form-group">
+                            <label>Driving License No.</label>
+                            <input type="text" placeholder="LHR-2020-00192" required value="LHR-2020-00192">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Registration Book (Upload photo)</label>
+                            <input type="file" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Submit for Re-verification</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 6. VIEW: ADMIN DASHBOARD -->
+    <!-- ========================================================================= -->
+    <div id="adminView" class="view-panel container">
+        <div class="view-header">
+            <h2><i class="fa-solid fa-lock"></i> RYDO Platform Admin Dashboard</h2>
+            <p>System monitoring, driver verification compliance, and fare rate controls.</p>
+        </div>
+
+        <div class="admin-stats-grid">
+            <div class="adm-card"><span>Total Registered Users</span><h3>42,910</h3></div>
+            <div class="adm-card"><span>Active Verified Drivers</span><h3>3,180</h3></div>
+            <div class="adm-card"><span>Completed Rides Today</span><h3>1,420</h3></div>
+            <div class="adm-card"><span>Platform Fee Revenue</span><h3>Rs. 48,200</h3></div>
+        </div>
+
+        <div class="admin-section">
+            <h3>Driver Verification Review Queue</h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Driver Name</th>
+                        <th>Vehicle</th>
+                        <th>CNIC</th>
+                        <th>License Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="adminDriverTable">
+                    <tr>
+                        <td>Farhan Tariq</td>
+                        <td>Honda City (LED-2018)</td>
+                        <td>35202-8819201-3</td>
+                        <td><span class="badge-status pending">Pending Review</span></td>
+                        <td>
+                            <button class="btn-sm green" onclick="adminVerifyDriver(this, 'Approved')">Approve</button>
+                            <button class="btn-sm red" onclick="adminVerifyDriver(this, 'Rejected')">Reject</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Zubair Malik</td>
+                        <td>Honda CG125 (LEM-771)</td>
+                        <td>35201-1192841-5</td>
+                        <td><span class="badge-status pending">Pending Review</span></td>
+                        <td>
+                            <button class="btn-sm green" onclick="adminVerifyDriver(this, 'Approved')">Approve</button>
+                            <button class="btn-sm red" onclick="adminVerifyDriver(this, 'Rejected')">Reject</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODALS: AUTHENTICATION, OTP, SOS, PROFILE -->
+    <!-- ========================================================================= -->
+
+    <!-- AUTH MODAL -->
+    <div class="modal-backdrop" id="authModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</button>
+                <button class="auth-tab" id="tabSignupBtn" onclick="switchAuthMode('signup')">Sign Up</button>
+            </div>
+
+            <!-- Login -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Mobile Phone Number</label>
+                    <input type="tel" id="loginUserPhone" placeholder="03001234567" maxlength="11" oninput="enforcePakistaniPhone(this)" required>
+                    <small class="field-hint">Must be 11 digits starting with 03</small>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label>Select Role</label>
+                    <select id="loginRole">
+                        <option value="rider">Rider</option>
+                        <option value="driver">Driver Partner</option>
+                        <option value="admin">System Admin</option>
+                    </select>
+                </div>
+                <div class="auth-footer-links">
+                    <a href="javascript:void(0)" onclick="openForgotPassword()">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Login to Account</button>
+            </form>
+
+            <!-- Signup -->
+            <form id="signupForm" onsubmit="handleSignup(event)" style="display: none;">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signupName" placeholder="Zeeshan Ali" required>
+                </div>
+                <div class="form-group">
+                    <label>Mobile Phone Number (for SMS OTP)</label>
+                    <input type="tel" id="signupPhone" placeholder="03001234567" maxlength="11" oninput="enforcePakistaniPhone(this)" required>
+                    <small class="field-hint">Must be exactly 11 digits starting with 03</small>
+                </div>
+                <div class="form-group">
+                    <label>Password (min 6 characters)</label>
+                    <input type="password" id="signupPassword" placeholder="Minimum 6 chars" minlength="6" autocomplete="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label>Register As</label>
+                    <select id="signupRole">
+                        <option value="rider">Rider (Book Rides)</option>
+                        <option value="driver">Driver (Earn with your Vehicle)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Sign Up &amp; Verify OTP</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- OTP VERIFICATION MODAL -->
+    <div class="modal-backdrop" id="otpModal">
+        <div class="modal-card text-center">
+            <button class="modal-close" onclick="closeModal('otpModal')">&times;</button>
+            <i class="fa-solid fa-envelope-circle-check modal-icon"></i>
+            <h3>Enter Verification OTP</h3>
+            <p>We've sent a 4-digit code to <strong id="otpTargetPhone">03001234567</strong>.</p>
+            <div class="otp-inputs" id="otpInputs">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-digit" autocomplete="one-time-code">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-digit">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-digit">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-digit">
+            </div>
+            <p id="otpDevHint" class="field-hint" style="display:none; margin-bottom: 0.8rem;"></p>
+            <button class="btn-primary" id="otpVerifyBtn" style="width: 100%;" onclick="verifyOtpAndLogin()">Verify &amp; Activate Account</button>
+            <p class="field-hint" style="margin-top: 0.8rem;">Didn't get it? <a href="javascript:void(0)" onclick="resendSignupOtp()">Resend code</a></p>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div class="modal-backdrop" id="forgotModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModal('forgotModal')">&times;</button>
+            <h3>Reset Password</h3>
+            <p id="forgotIntro">Enter your registered mobile phone number to receive a reset code.</p>
+            <form onsubmit="handleForgotReset(event)" id="forgotStep1">
+                <div class="form-group">
+                    <label>Registered Phone Number</label>
+                    <input type="tel" id="forgotPhone" placeholder="03001234567" maxlength="11" oninput="enforcePakistaniPhone(this)" required>
+                    <small class="field-hint">Must be 11 digits starting with 03</small>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Send Reset SMS</button>
+            </form>
+            <form onsubmit="handleResetConfirm(event)" id="forgotStep2" style="display: none;">
+                <div class="form-group">
+                    <label>4-digit Code</label>
+                    <input type="text" id="resetCode" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="one-time-code" required>
+                    <small class="field-hint" id="resetDevHint" style="display:none;"></small>
+                </div>
+                <div class="form-group">
+                    <label>New Password (min 6 characters)</label>
+                    <input type="password" id="resetNewPassword" minlength="6" autocomplete="new-password" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Set New Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- USER PROFILE MODAL -->
+    <div class="modal-backdrop" id="profileModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+            <div class="profile-header-view text-center">
+                <img id="profileCardImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Profile" class="profile-avatar-lg">
+                <h3 id="profileCardName">Zeeshan Ali</h3>
+                <p id="profileCardRole">Role: Rider • Rating: 5.0 ★</p>
+                <p class="profile-phone-text" id="profileCardPhone">Phone: 03001234567</p>
+            </div>
+            <form onsubmit="saveProfileEdits(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editProfileName" value="Zeeshan Ali" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number (Read-Only Verified)</label>
+                    <input type="tel" id="editProfilePhone" value="03001234567" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Profile Picture URL</label>
+                    <input type="url" id="editProfilePic" value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-bottom: 0.6rem;">Save Profile Updates</button>
+                <button type="button" class="btn-ghost text-danger" style="width: 100%;" onclick="logoutUser()">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS EMERGENCY MODAL -->
+    <div class="modal-backdrop" id="sosModal">
+        <div class="modal-card text-center sos-border">
+            <button class="modal-close" onclick="closeModal('sosModal')">&times;</button>
+            <i class="fa-solid fa-triangle-exclamation modal-icon red"></i>
+            <h2 class="text-danger">EMERGENCY SOS ALERT</h2>
+            <p>Immediate 24/7 security dispatch will be alerted with your live GPS location, driver registration, and audio feed.</p>
+            <div class="sos-countdown" id="sosCountdownVal">5</div>
+            <div class="sos-buttons">
+                <button class="btn-danger" onclick="triggerSOSImmediate()">Dispatch Emergency Now (Police 15)</button>
+                <button class="btn-ghost" onclick="cancelSOS()">False Alarm (Cancel)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container footer-grid">
+            <div>
+                <a href="javascript:void(0)" onclick="switchView('home')" class="logo"><span class="logo-accent">RY</span>DO</a>
+                <p>Transparent, surge-free, peer-to-peer mobility built for Pakistan.</p>
+            </div>
+            <div>
+                <h4>Explore</h4>
+                <a href="javascript:void(0)" onclick="switchView('home')">Book a Ride</a>
+                <a href="javascript:void(0)" onclick="switchView('about')">About Us</a>
+                <a href="javascript:void(0)" onclick="switchView('driverDashboard')">Driver Portal</a>
+                <a href="javascript:void(0)" onclick="switchView('history')">Ride History</a>
+            </div>
+            <div>
+                <h4>Safety &amp; Support</h4>
+                <a href="javascript:void(0)" onclick="openSOSModal()">Emergency SOS</a>
+                <a href="javascript:void(0)" onclick="switchView('contact')">Contact Support</a>
+                <a href="javascript:void(0)" onclick="showToast('Helpline: +92 (42) 111-7936-00')">24/7 Helpline</a>
+            </div>
+        </div>
+        <div class="container footer-copy">
+            <p>&copy; 2025 RYDO Technologies Pakistan. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- ========================================================================= -->
+    <!-- JAVASCRIPT APPLICATION ENGINE -->
+    <!-- ========================================================================= -->
+    <script>
+        /* =========================================================================
+           1. 03-PREFIX & 11-DIGIT PHONE ENFORCEMENT
+           ========================================================================= */
+        function enforcePakistaniPhone(input) {
+            let val = input.value.replace(/\D/g, '');
+
+            if (val.length >= 1 && val[0] !== '0') val = '';
+            if (val.length >= 2 && val.substring(0, 2) !== '03') val = '0';
+            if (val.length > 11) val = val.substring(0, 11);
+
+            input.value = val;
+
+            if (val.length === 0) {
+                input.setCustomValidity("Please enter your mobile phone number.");
+            } else if (val.length < 2 || val.substring(0, 2) !== '03') {
+                input.setCustomValidity("Phone number must start with 03");
+            } else if (val.length !== 11) {
+                input.setCustomValidity("Phone number must be exactly 11 digits (e.g., 03001234567)");
+            } else {
+                input.setCustomValidity("");
+            }
+        }
+
+        function isValidPakistaniPhone(num) {
+            return /^03\d{9}$/.test(num);
+        }
+
+        /* =========================================================================
+           2. DRIVERS DATABASE FOR MINIMUM 4 BIDS
+           ========================================================================= */
+        const DRIVERS_FLEET = {
+            car: [
+                { id: 'c1', name: 'Asif Mehmood', car: 'Toyota Corolla • White (LEA-4921)', rating: '4.95 ★', delta: -10, eta: '2 mins away' },
+                { id: 'c2', name: 'Kashif Rasheed', car: 'Honda City • Silver (LZE-1102)', rating: '4.88 ★', delta: 0, eta: '3 mins away' },
+                { id: 'c3', name: 'Zohaib Akhtar', car: 'Suzuki Swift • Grey (LEC-8819)', rating: '4.92 ★', delta: 30, eta: '4 mins away' },
+                { id: 'c4', name: 'Tariq Javed', car: 'Changan Alsvin • Black (LRX-5510)', rating: '4.85 ★', delta: 50, eta: '6 mins away' }
+            ],
+            rickshaw: [
+                { id: 'r1', name: 'Muhammad Noman', car: 'Sazgar Auto 4-Stroke (LEM-901)', rating: '4.90 ★', delta: -15, eta: '1 min away' },
+                { id: 'r2', name: 'Farooq Azam', car: 'New Asia CNG Auto (LXZ-331)', rating: '4.82 ★', delta: 0, eta: '3 mins away' },
+                { id: 'r3', name: 'Riaz Ahmed', car: 'Sazgar Eco Rickshaw (LHQ-442)', rating: '4.94 ★', delta: 20, eta: '4 mins away' },
+                { id: 'r4', name: 'Tanveer Shah', car: 'Master Auto Special (LHW-982)', rating: '4.78 ★', delta: 40, eta: '5 mins away' }
+            ],
+            bike: [
+                { id: 'b1', name: 'Hamza Liaquat', car: 'Honda CG125 • Red (LED-199)', rating: '4.96 ★', delta: -10, eta: '1 min away' },
+                { id: 'b2', name: 'Bilal Farooq', car: 'Yamaha YBR 125G • Black (LEZ-771)', rating: '4.91 ★', delta: 0, eta: '2 mins away' },
+                { id: 'b3', name: 'Usman Ghani', car: 'Suzuki GS150 • Blue (LRA-404)', rating: '4.85 ★', delta: 15, eta: '3 mins away' },
+                { id: 'b4', name: 'Sarmad Raza', car: 'Honda CD70 • Black (LHP-661)', rating: '4.79 ★', delta: 25, eta: '4 mins away' }
+            ]
+        };
+
+        /* =========================================================================
+           3. APPLICATION STATE & PERSISTENT DATA
+           ========================================================================= */
+        const APP_STATE = {
+            currentUser: {
+                id: 1,
+                name: "Hamza Tariq",
+                phone: "03001234567",
+                role: "rider",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+                rating: 5.0
+            },
+            currentVehicle: "car",
+            rates: {
+                bike: { base: 50, perKm: 15, waitPerMin: 2 },
+                rickshaw: { base: 70, perKm: 22, waitPerMin: 3 },
+                car: { base: 120, perKm: 35, waitPerMin: 5 }
+            },
+            activeTrip: null,
+            tripStage: 0,
+            notifications: [
+                { id: 1, text: "Welcome to RYDO! Enjoy 100% surge-free rides.", time: "10m ago" },
+                { id: 2, text: "Special: 5% flat fee for driver partners this month.", time: "1h ago" }
+            ],
+            rideHistory: [
+                {
+                    id: "RYDO-8421",
+                    date: "Today, 11:30 AM",
+                    pickup: "DHA Phase 3, Lahore",
+                    destination: "Packages Mall",
+                    vehicle: "Car (AC)",
+                    fare: "Rs. 360",
+                    driver: "Asif Mehmood (4.9★)",
+                    status: "Completed",
+                    rating: 5
+                },
+                {
+                    id: "RYDO-8390",
+                    date: "Yesterday, 05:40 PM",
+                    pickup: "Gulberg Main Blvd",
+                    destination: "Anarkali Bazaar",
+                    vehicle: "Rickshaw",
+                    fare: "Rs. 240",
+                    driver: "Muhammad Noman (4.8★)",
+                    status: "Completed",
+                    rating: 5
+                }
+            ],
+            driverRequests: [
+                { id: 101, rider: "Sara Khan", pickup: "Johar Town, Block G", drop: "Emporium Mall", offeredFare: "Rs. 250", distance: "4.5 km" },
+                { id: 102, rider: "Bilal Butt", pickup: "Mall Road", drop: "Lahore Cantt", offeredFare: "Rs. 420", distance: "9 km" }
+            ],
+            sosTimer: null,
+            routeAnimationTimer: null,
+            carProgress: 0.15
+        };
+
+        /* =========================================================================
+           4. VIEW SWITCHER (SPA ROUTER)
+           ========================================================================= */
+        function switchView(viewName) {
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+            if (viewName === 'home') {
+                document.getElementById('homeView').classList.add('active');
+                document.getElementById('navHome').classList.add('active');
+            } else if (viewName === 'about') {
+                document.getElementById('aboutView').classList.add('active');
+                document.getElementById('navAbout').classList.add('active');
+            } else if (viewName === 'contact') {
+                document.getElementById('contactView').classList.add('active');
+                document.getElementById('navContact').classList.add('active');
+            } else if (viewName === 'history') {
+                renderRideHistory();
+                document.getElementById('historyView').classList.add('active');
+                document.getElementById('navHistory').classList.add('active');
+            } else if (viewName === 'driverDashboard') {
+                renderDriverRequests();
+                document.getElementById('driverView').classList.add('active');
+                document.getElementById('navDriver').classList.add('active');
+            } else if (viewName === 'adminDashboard') {
+                document.getElementById('adminView').classList.add('active');
+                document.getElementById('navAdmin').classList.add('active');
+            }
+
+            document.getElementById('navMenu').classList.remove('open');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function scrollToSection(id) {
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        /* =========================================================================
+           5. SMART FARE CALCULATOR & SELECTION
+           ========================================================================= */
+        function selectVehicle(type, base, perKm, waitRate) {
+            APP_STATE.currentVehicle = type;
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`veh-${type}`).classList.add('active');
+            recalculateFare();
+        }
+
+        function recalculateFare() {
+            const distance = parseFloat(document.getElementById('tripDistance').value) || 1;
+            const waitTime = parseFloat(document.getElementById('tripWait').value) || 0;
+            const traffic = parseFloat(document.getElementById('trafficFactor').value) || 1.0;
+            const vehicle = APP_STATE.rates[APP_STATE.currentVehicle];
+
+            const baseFare = vehicle.base;
+            const distanceFare = Math.round(distance * vehicle.perKm * traffic);
+            const waitFare = Math.round(waitTime * vehicle.waitPerMin);
+            const totalFare = baseFare + distanceFare + waitFare;
+
+            document.getElementById('baseFareAmount').innerText = `Rs. ${baseFare}`;
+            document.getElementById('distValDisplay').innerText = distance;
+            document.getElementById('distFareAmount').innerText = `Rs. ${distanceFare}`;
+            document.getElementById('waitFareAmount').innerText = `Rs. ${waitFare}`;
+            document.getElementById('breakdownTotal').innerText = `Rs. ${totalFare}`;
+            document.getElementById('marketEst').innerText = `Rs. ${totalFare}`;
+
+            document.getElementById('customOfferInput').value = Math.max(50, totalFare - 40);
+        }
+
+        function adjustCustomFare(delta) {
+            const input = document.getElementById('customOfferInput');
+            let val = parseInt(input.value) || 100;
+            val = Math.max(40, val + delta);
+            input.value = val;
+        }
+
+        function swapLocations() {
+            const p = document.getElementById('pickupLocation');
+            const d = document.getElementById('dropLocation');
+            const tmp = p.value;
+            p.value = d.value;
+            d.value = tmp;
+            showToast("Pickup and Destination swapped.");
+        }
+
+        /* =========================================================================
+           6. FARE NEGOTIATION WITH MINIMUM 4 DRIVERS
+           ========================================================================= */
+        function calculateAndReviewFare(e) {
+            e.preventDefault();
+            const pickup = document.getElementById('pickupLocation').value;
+            const drop = document.getElementById('dropLocation').value;
+            const offer = parseInt(document.getElementById('customOfferInput').value);
+            const dist = document.getElementById('tripDistance').value;
+
+            document.getElementById('bookingTerminalForm').style.display = 'none';
+            document.getElementById('biddingRadarView').style.display = 'block';
+            document.getElementById('userOfferedFare').innerText = `Rs. ${offer}`;
+            document.getElementById('radarDistance').innerText = `${dist} km`;
+            document.getElementById('biddingVehicleType').innerText = APP_STATE.currentVehicle.toUpperCase();
+
+            addNotification(`Broadcasted ride request: ${pickup} to ${drop} for Rs. ${offer}`);
+
+            const container = document.getElementById('incomingBidsList');
+            container.innerHTML = `<p class="searching-pulse"><i class="fa-solid fa-spinner fa-spin"></i> Finding 4+ nearby ${APP_STATE.currentVehicle} drivers...</p>`;
+
+            const pool = DRIVERS_FLEET[APP_STATE.currentVehicle];
+
+            setTimeout(() => {
+                container.innerHTML = '';
+                pool.forEach((drv) => {
+                    const priceCalculated = Math.max(50, offer + drv.delta);
+                    const isCounter = drv.delta !== 0;
+
+                    const div = document.createElement('div');
+                    div.className = 'driver-bid-tile';
+                    div.innerHTML = `
+                        <div class="bid-profile">
+                            <div class="driver-avatar-circle"><i class="fa-solid fa-user"></i></div>
+                            <div>
+                                <h5>${drv.name} <span class="badge-pill">${drv.eta}</span></h5>
+                                <p>${drv.car}</p>
+                                <small>${drv.rating}</small>
+                            </div>
+                        </div>
+                        <div class="bid-action-col">
+                            <span class="bid-tag-price">Rs. ${priceCalculated}</span>
+                            ${isCounter ? `<small class="counter-label">${drv.delta > 0 ? '+Rs. ' + drv.delta : '-Rs. ' + Math.abs(drv.delta)} Counter</small>` : '<small class="counter-label green">Accepted Your Offer</small>'}
+                            <button class="btn-sm green" onclick="acceptDriverBid('${drv.name}', '${drv.car}', '${priceCalculated}')">Accept Offer</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }, 1200);
+        }
+
+        function acceptDriverBid(name, car, price) {
+            const pickup = document.getElementById('pickupLocation').value;
+            const drop = document.getElementById('dropLocation').value;
+
+            APP_STATE.activeTrip = {
+                driver: name,
+                vehicle: car,
+                fare: `Rs. ${price}`,
+                pickup: pickup,
+                drop: drop,
+                pin: Math.floor(1000 + Math.random() * 9000)
+            };
+
+            document.getElementById('biddingRadarView').style.display = 'none';
+            document.getElementById('activeTripMonitor').style.display = 'block';
+
+            document.getElementById('activeDriverName').innerText = name;
+            document.getElementById('activeDriverVehicle').innerText = car;
+            document.getElementById('activeAgreedFare').innerText = `Rs. ${price}`;
+            document.getElementById('activeTripPin').innerText = APP_STATE.activeTrip.pin.toString().split('').join(' ');
+            
+            document.getElementById('mapPickupLabel').innerText = pickup.split(',')[0];
+            document.getElementById('mapDropLabel').innerText = drop.split(',')[0];
+
+            APP_STATE.tripStage = 0;
+            APP_STATE.carProgress = 0.15;
+            startLiveRouteMap();
+            updateTripStageUI();
+            addNotification(`Ride Confirmed with ${name} for Rs. ${price}`);
+            showToast("Ride accepted! Driver is en route.");
+        }
+
+        function cancelRideSearch() {
+            document.getElementById('biddingRadarView').style.display = 'none';
+            document.getElementById('bookingTerminalForm').style.display = 'block';
+            showToast("Search cancelled.");
+        }
+
+        /* =========================================================================
+           7. LIVE LOCATION & MAP ANIMATION
+           ========================================================================= */
+        function startLiveRouteMap() {
+            const canvas = document.getElementById('routeCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            clearInterval(APP_STATE.routeAnimationTimer);
+
+            APP_STATE.routeAnimationTimer = setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const startX = 50, startY = 120;
+                const endX = 420, endY = 40;
+                const controlX = 220, controlY = 150;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+                ctx.strokeStyle = '#00e599';
+                ctx.lineWidth = 6;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(startX, startY, 9, 0, Math.PI * 2);
+                ctx.fillStyle = '#06b6d4';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(endX, endY, 9, 0, Math.PI * 2);
+                ctx.fillStyle = '#ef4444';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                const t = APP_STATE.carProgress;
+                const carX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * controlX + t * t * endX;
+                const carY = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * controlY + t * t * endY;
+
+                ctx.beginPath();
+                ctx.arc(carX, carY, 14, 0, Math.PI * 2);
+                ctx.fillStyle = '#00e599';
+                ctx.shadowColor = 'rgba(0, 229, 153, 0.6)';
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#04160d';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🚗', carX, carY);
+
+                if (APP_STATE.tripStage >= 1 && APP_STATE.carProgress < 0.95) {
+                    APP_STATE.carProgress += 0.003;
+                }
+            }, 60);
+        }
+
+        function advanceTripStage() {
+            APP_STATE.tripStage++;
+            updateTripStageUI();
+        }
+
+        function updateTripStageUI() {
+            const statusEl = document.getElementById('tripProgressStatus');
+            const etaBadge = document.getElementById('mapEtaBadge');
+
+            if (APP_STATE.tripStage === 0) {
+                statusEl.innerText = "Driver is on the way to your pickup";
+                etaBadge.innerText = "ETA: 3 mins (2.4 km)";
+                APP_STATE.carProgress = 0.20;
+            } else if (APP_STATE.tripStage === 1) {
+                statusEl.innerText = "Driver arrived outside! Share your PIN.";
+                etaBadge.innerText = "Driver Arrived at Pickup";
+                APP_STATE.carProgress = 0.40;
+                addNotification("Your driver has arrived at the pickup location.");
+            } else if (APP_STATE.tripStage === 2) {
+                statusEl.innerText = "Trip in progress. En route to destination.";
+                etaBadge.innerText = "En Route (4.1 km left)";
+                APP_STATE.carProgress = 0.70;
+                addNotification("OTP verified. Safe journey!");
+            } else if (APP_STATE.tripStage === 3) {
+                clearInterval(APP_STATE.routeAnimationTimer);
+                document.getElementById('activeTripMonitor').style.display = 'none';
+                document.getElementById('tripCompletionView').style.display = 'block';
+
+                document.getElementById('recPickup').innerText = APP_STATE.activeTrip.pickup;
+                document.getElementById('recDrop').innerText = APP_STATE.activeTrip.drop;
+                document.getElementById('recVehicle').innerText = APP_STATE.activeTrip.vehicle;
+                document.getElementById('recAmount').innerText = APP_STATE.activeTrip.fare;
+                document.getElementById('rateDriverName').innerText = APP_STATE.activeTrip.driver;
+                addNotification("Trip completed! Please rate your driver.");
+            }
+        }
+
+        function submitTripRating() {
+            const newHistoryItem = {
+                id: `RYDO-${Math.floor(1000 + Math.random() * 9000)}`,
+                date: "Just now",
+                pickup: APP_STATE.activeTrip.pickup,
+                destination: APP_STATE.activeTrip.drop,
+                vehicle: APP_STATE.activeTrip.vehicle,
+                fare: APP_STATE.activeTrip.fare,
+                driver: `${APP_STATE.activeTrip.driver} (5.0★)`,
+                status: "Completed",
+                rating: 5
+            };
+            APP_STATE.rideHistory.unshift(newHistoryItem);
+
+            document.getElementById('tripCompletionView').style.display = 'none';
+            document.getElementById('bookingTerminalForm').style.display = 'block';
+            showToast("Thank you for your rating!");
+            switchView('history');
+        }
+
+        function setTripRating(stars) {
+            const starEls = document.querySelectorAll('#starGroup i');
+            starEls.forEach((el, index) => {
+                if (index < stars) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+        }
+
+        /* =========================================================================
+           8. NOTIFICATIONS SYSTEM WITH DISMISS & CLEAR ALL
+           ========================================================================= */
+        function addNotification(text) {
+            APP_STATE.notifications.unshift({ id: Date.now(), text, time: "Just now" });
+            updateNotificationUI();
+        }
+
+        function removeNotification(id, event) {
+            if (event) event.stopPropagation();
+            APP_STATE.notifications = APP_STATE.notifications.filter(n => n.id !== id);
+            updateNotificationUI();
+            showToast("Notification removed.");
+        }
+
+        function clearAllNotifications() {
+            APP_STATE.notifications = [];
+            updateNotificationUI();
+            showToast("All notifications cleared.");
+        }
+
+        function updateNotificationUI() {
+            const badge = document.getElementById('notifBadge');
+            badge.innerText = APP_STATE.notifications.length;
+            const list = document.getElementById('notifList');
+            list.innerHTML = '';
+
+            if (APP_STATE.notifications.length === 0) {
+                list.innerHTML = '<p class="empty-note">No notifications.</p>';
+                return;
+            }
+
+            APP_STATE.notifications.forEach(n => {
+                const item = document.createElement('div');
+                item.className = 'notif-item';
+                item.innerHTML = `
+                    <div class="notif-content">
+                        <p>${n.text}</p>
+                        <small>${n.time}</small>
+                    </div>
+                    <button class="btn-notif-remove" onclick="removeNotification(${n.id}, event)" title="Remove">&times;</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notifDropdown').classList.toggle('open');
+        }
+
+        document.addEventListener('click', (e) => {
+            const notifWrapper = document.querySelector('.notif-wrapper');
+            if (notifWrapper && !notifWrapper.contains(e.target)) {
+                document.getElementById('notifDropdown').classList.remove('open');
+            }
+        });
+
+        /* =========================================================================
+           9. WORKING CONTACT FORM
+           ========================================================================= */
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('contactName').value;
+            const phone = document.getElementById('contactPhone').value;
+            const subject = document.getElementById('contactSubject').value;
+
+            if (!isValidPakistaniPhone(phone)) {
+                showToast("Error: Phone number must be 11 digits starting with 03");
+                return;
+            }
+
+            alert(`✅ Message Sent Successfully!\n\nThank you ${name}.\nYour inquiry regarding "${subject}" has been assigned ticket #RD-${Math.floor(1000 + Math.random() * 9000)}.\nOur team will contact you at ${phone} within 15 minutes.`);
+            document.getElementById('contactForm').reset();
+            addNotification(`Support Ticket Submitted: ${subject}`);
+            switchView('home');
+        }
+
+        /* =========================================================================
+           10. RIDE HISTORY & DRIVER/ADMIN HUBS
+           ========================================================================= */
+        function renderRideHistory() {
+            const container = document.getElementById('historyListContainer');
+            container.innerHTML = '';
+
+            APP_STATE.rideHistory.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.innerHTML = `
+                    <div class="h-header">
+                        <strong>${item.id}</strong>
+                        <span>${item.date}</span>
+                    </div>
+                    <div class="h-route">
+                        <div><i class="fa-solid fa-circle dot green"></i> ${item.pickup}</div>
+                        <div><i class="fa-solid fa-circle dot red"></i> ${item.destination}</div>
+                    </div>
+                    <div class="h-footer">
+                        <span>${item.vehicle} • ${item.driver}</span>
+                        <strong class="text-primary">${item.fare}</strong>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderDriverRequests() {
+            const feed = document.getElementById('driverRequestsFeed');
+            feed.innerHTML = '';
+            APP_STATE.driverRequests.forEach(req => {
+                const item = document.createElement('div');
+                item.className = 'driver-req-card';
+                item.innerHTML = `
+                    <div class="req-header">
+                        <strong>${req.rider}</strong>
+                        <span class="badge-pill">${req.distance}</span>
+                    </div>
+                    <p class="req-route">${req.pickup} &rarr; ${req.drop}</p>
+                    <div class="req-actions">
+                        <span class="req-fare">${req.offeredFare}</span>
+                        <div>
+                            <button class="btn-sm green" onclick="driverAcceptJob(${req.id})">Accept</button>
+                            <button class="btn-sm" onclick="driverCounterJob(${req.id})">Counter +Rs. 50</button>
+                        </div>
+                    </div>
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        function driverAcceptJob(id) {
+            APP_STATE.driverRequests = APP_STATE.driverRequests.filter(r => r.id !== id);
+            renderDriverRequests();
+            showToast("Accepted passenger request!");
+        }
+
+        function driverCounterJob(id) {
+            showToast("Counter offer submitted to passenger.");
+        }
+
+        function toggleDriverStatus() {
+            const isOnline = document.getElementById('driverOnlineToggle').checked;
+            document.getElementById('driverStatusLabel').innerText = isOnline ? "You are ONLINE" : "You are OFFLINE";
+            showToast(isOnline ? "Status: Online (Accepting Rides)" : "Status: Offline");
+        }
+
+        function handleDocUpload(e) {
+            e.preventDefault();
+            const phone = document.getElementById('driverDocPhone').value;
+            if (!isValidPakistaniPhone(phone)) {
+                showToast("Error: Phone must be 11 digits starting with 03");
+                return;
+            }
+            document.getElementById('drvVerifStatus').className = "badge-status pending";
+            document.getElementById('drvVerifStatus').innerText = "Verification: Pending Admin Review";
+            showToast("Documents uploaded! Admin team notified.");
+        }
+
+        function adminVerifyDriver(btn, status) {
+            const row = btn.closest('tr');
+            const statusCell = row.querySelector('.badge-status');
+            statusCell.className = `badge-status ${status.toLowerCase()}`;
+            statusCell.innerText = status;
+            showToast(`Driver status updated to ${status}`);
+        }
+
+        /* =========================================================================
+           11. AUTHENTICATION & MODAL UTILITIES
+           ========================================================================= */
+        function openAuthModal(mode) {
+            switchAuthMode(mode);
+            openModal('authModal');
+        }
+
+        function switchAuthMode(mode) {
+            if (mode === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('signupForm').style.display = 'none';
+                document.getElementById('tabLoginBtn').classList.add('active');
+                document.getElementById('tabSignupBtn').classList.remove('active');
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('signupForm').style.display = 'block';
+                document.getElementById('tabSignupBtn').classList.add('active');
+                document.getElementById('tabLoginBtn').classList.remove('active');
+            }
+        }
+
+        /* ---- API helper (talks to the Node backend) ---- */
+        const API = {
+            token: (() => { try { return localStorage.getItem('rydo_token'); } catch (e) { return null; } })(),
+            setToken(t) {
+                this.token = t;
+                try { t ? localStorage.setItem('rydo_token', t) : localStorage.removeItem('rydo_token'); } catch (e) {}
+            },
+            async call(method, url, body) {
+                let res;
+                try {
+                    res = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: 'Bearer ' + this.token } : {}) },
+                        body: body ? JSON.stringify(body) : undefined
+                    });
+                } catch (e) {
+                    const err = new Error('Cannot reach the server. Start it with "npm start" and open http://localhost:3000');
+                    err.network = true;
+                    throw err;
+                }
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) { const err = new Error(data.error || 'Request failed'); err.code = data.code; err.data = data; throw err; }
+                return data;
+            }
+        };
+
+        function setBusy(btn, busy) { if (btn) { btn.disabled = busy; btn.style.opacity = busy ? 0.6 : 1; } }
+
+        function applyUser(u) {
+            Object.assign(APP_STATE.currentUser, {
+                id: u.id, name: u.name, phone: u.phone, role: u.role, rating: u.rating,
+                avatar: u.avatar || APP_STATE.currentUser.avatar
+            });
+            updateUserUIAfterLogin();
+        }
+
+        function routeByRole(role) {
+            if (role === 'driver') switchView('driverDashboard');
+            if (role === 'admin') switchView('adminDashboard');
+        }
+
+        let pendingOtpPhone = null;
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('loginUserPhone').value;
+            const password = document.getElementById('loginPassword').value;
+            const role = document.getElementById('loginRole').value;
+
+            if (!isValidPakistaniPhone(phone)) {
+                showToast("Error: Phone number must be 11 digits starting with 03");
+                return;
+            }
+            const btn = e.submitter; setBusy(btn, true);
+            try {
+                const { token, user } = await API.call('POST', '/api/auth/login', { phone, password, role });
+                API.setToken(token);
+                applyUser(user);
+                closeModal('authModal');
+                document.getElementById('loginPassword').value = '';
+                showToast(`Logged in as ${user.role.toUpperCase()}`);
+                routeByRole(user.role);
+            } catch (err) {
+                if (err.code === 'NOT_VERIFIED') {
+                    closeModal('authModal');
+                    openOtpModal(err.data.phone || phone, err.data.devOtp);
+                }
+                showToast(err.message);
+            } finally { setBusy(btn, false); }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const phone = document.getElementById('signupPhone').value;
+            const name = document.getElementById('signupName').value;
+            const password = document.getElementById('signupPassword').value;
+            const role = document.getElementById('signupRole').value;
+
+            if (!isValidPakistaniPhone(phone)) {
+                showToast("Error: Phone number must be 11 digits starting with 03");
+                return;
+            }
+            const btn = e.submitter; setBusy(btn, true);
+            try {
+                const data = await API.call('POST', '/api/auth/signup', { name, phone, password, role });
+                closeModal('authModal');
+                openOtpModal(phone, data.devOtp);
+                showToast("Verification code sent to your phone.");
+            } catch (err) {
+                showToast(err.message);
+                if (err.code === 'PHONE_EXISTS') {
+                    document.getElementById('loginUserPhone').value = phone;
+                    switchAuthMode('login');
+                }
+            } finally { setBusy(btn, false); }
+        }
+
+        /* ---- OTP modal ---- */
+        function openOtpModal(phone, devOtp) {
+            pendingOtpPhone = phone;
+            document.getElementById('otpTargetPhone').innerText = phone;
+            document.querySelectorAll('#otpInputs .otp-digit').forEach(i => i.value = '');
+            showDevOtpHint(devOtp);
+            openModal('otpModal');
+            document.querySelector('#otpInputs .otp-digit').focus();
+        }
+
+        function showDevOtpHint(devOtp) {
+            const hint = document.getElementById('otpDevHint');
+            hint.style.display = devOtp ? 'block' : 'none';
+            hint.innerText = devOtp ? `Dev mode (no SMS provider yet): your code is ${devOtp}` : '';
+        }
+
+        (function setupOtpBoxes() {
+            const boxes = [...document.querySelectorAll('#otpInputs .otp-digit')];
+            boxes.forEach((box, i) => {
+                box.addEventListener('input', () => {
+                    box.value = box.value.replace(/\D/g, '').slice(0, 1);
+                    if (box.value && boxes[i + 1]) boxes[i + 1].focus();
+                });
+                box.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Backspace' && !box.value && boxes[i - 1]) boxes[i - 1].focus();
+                });
+                box.addEventListener('paste', (ev) => {
+                    const digits = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 4);
+                    if (!digits) return;
+                    ev.preventDefault();
+                    digits.split('').forEach((d, k) => { if (boxes[k]) boxes[k].value = d; });
+                    boxes[Math.min(digits.length, 3)].focus();
+                });
+            });
+        })();
+
+        async function verifyOtpAndLogin() {
+            const code = [...document.querySelectorAll('#otpInputs .otp-digit')].map(i => i.value).join('');
+            if (code.length !== 4) { showToast("Enter the 4-digit code."); return; }
+            const btn = document.getElementById('otpVerifyBtn'); setBusy(btn, true);
+            try {
+                const { token, user } = await API.call('POST', '/api/auth/verify-otp', { phone: pendingOtpPhone, code });
+                API.setToken(token);
+                applyUser(user);
+                closeModal('otpModal');
+                showToast("Phone verified! Account activated.");
+                routeByRole(user.role);
+            } catch (err) { showToast(err.message); }
+            finally { setBusy(btn, false); }
+        }
+
+        async function resendSignupOtp() {
+            try {
+                const data = await API.call('POST', '/api/auth/resend-otp', { phone: pendingOtpPhone });
+                showDevOtpHint(data.devOtp);
+                showToast("A new code has been sent.");
+            } catch (err) { showToast(err.message); }
+        }
+
+        function updateUserUIAfterLogin() {
+            const u = APP_STATE.currentUser;
+            document.getElementById('authNavButtons').style.display = 'none';
+            document.getElementById('userProfilePill').style.display = 'flex';
+            document.getElementById('navUserName').innerText = u.name;
+            if (u.avatar) document.getElementById('navUserAvatar').src = u.avatar;
+        }
+
+        function logoutUser() {
+            API.setToken(null);
+            closeModal('profileModal');
+            location.reload();
+        }
+
+        function openProfileModal() {
+            const u = APP_STATE.currentUser;
+            document.getElementById('profileCardName').innerText = u.name;
+            document.getElementById('editProfileName').value = u.name;
+            document.getElementById('profileCardPhone').innerText = `Phone: ${u.phone}`;
+            document.getElementById('editProfilePhone').value = u.phone;
+            document.getElementById('profileCardRole').innerText = `Role: ${u.role.charAt(0).toUpperCase() + u.role.slice(1)} • Rating: ${Number(u.rating).toFixed(1)} ★`;
+            if (u.avatar) {
+                document.getElementById('profileCardImg').src = u.avatar;
+                document.getElementById('editProfilePic').value = u.avatar;
+            }
+            openModal('profileModal');
+        }
+
+        async function saveProfileEdits(e) {
+            e.preventDefault();
+            const name = document.getElementById('editProfileName').value;
+            const avatar = document.getElementById('editProfilePic').value;
+            const btn = e.submitter; setBusy(btn, true);
+            try {
+                const { user } = await API.call('PUT', '/api/auth/profile', { name, avatar });
+                applyUser(user);
+                closeModal('profileModal');
+                showToast("Profile details updated.");
+            } catch (err) { showToast(err.message); }
+            finally { setBusy(btn, false); }
+        }
+
+        function openForgotPassword() {
+            closeModal('authModal');
+            document.getElementById('forgotStep1').style.display = 'block';
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotIntro').innerText = 'Enter your registered mobile phone number to receive a reset code.';
+            openModal('forgotModal');
+        }
+
+        let resetPhone = null;
+
+        async function handleForgotReset(e) {
+            e.preventDefault();
+            const phone = document.getElementById('forgotPhone').value;
+            if (!isValidPakistaniPhone(phone)) {
+                showToast("Error: Must be 11 digits starting with 03");
+                return;
+            }
+            const btn = e.submitter; setBusy(btn, true);
+            try {
+                const data = await API.call('POST', '/api/auth/forgot-password', { phone });
+                resetPhone = phone;
+                document.getElementById('forgotStep1').style.display = 'none';
+                document.getElementById('forgotStep2').style.display = 'block';
+                document.getElementById('forgotIntro').innerText = `Enter the code sent to ${phone} and choose a new password.`;
+                const hint = document.getElementById('resetDevHint');
+                hint.style.display = data.devOtp ? 'block' : 'none';
+                hint.innerText = data.devOtp ? `Dev mode (no SMS provider yet): your code is ${data.devOtp}` : '';
+                showToast(`Password reset code sent to ${phone}.`);
+            } catch (err) { showToast(err.message); }
+            finally { setBusy(btn, false); }
+        }
+
+        async function handleResetConfirm(e) {
+            e.preventDefault();
+            const btn = e.submitter; setBusy(btn, true);
+            try {
+                await API.call('POST', '/api/auth/reset-password', {
+                    phone: resetPhone,
+                    code: document.getElementById('resetCode').value,
+                    newPassword: document.getElementById('resetNewPassword').value
+                });
+                closeModal('forgotModal');
+                document.getElementById('resetCode').value = '';
+                document.getElementById('resetNewPassword').value = '';
+                document.getElementById('loginUserPhone').value = resetPhone;
+                openAuthModal('login');
+                showToast("Password updated. Please log in.");
+            } catch (err) { showToast(err.message); }
+            finally { setBusy(btn, false); }
+        }
+
+        /* Restore an existing session on page load */
+        (async function restoreSession() {
+            if (!API.token) return;
+            try {
+                const { user } = await API.call('GET', '/api/auth/me');
+                applyUser(user);
+            } catch (err) { if (!err.network) API.setToken(null); }
+        })();
+
+        /* SOS Alert Engine */
+        function openSOSModal() {
+            openModal('sosModal');
+            let count = 5;
+            document.getElementById('sosCountdownVal').innerText = count;
+            clearInterval(APP_STATE.sosTimer);
+            APP_STATE.sosTimer = setInterval(() => {
+                count--;
+                document.getElementById('sosCountdownVal').innerText = count;
+                if (count <= 0) {
+                    clearInterval(APP_STATE.sosTimer);
+                    triggerSOSImmediate();
+                }
+            }, 1000);
+        }
+
+        function cancelSOS() {
+            clearInterval(APP_STATE.sosTimer);
+            closeModal('sosModal');
+            showToast("SOS alert cancelled.");
+        }
+
+        function triggerSOSImmediate() {
+            clearInterval(APP_STATE.sosTimer);
+            alert("🚨 SOS EMERGENCY BROADCASTED!\n\n• Police 15 Dispatch notified.\n• Driver and vehicle details transmitted.\n• Family emergency contacts received live GPS pin.");
+            closeModal('sosModal');
+        }
+
+        function shareTripDetails() {
+            showToast("Trip tracking link copied to clipboard!");
+        }
+
+        function simulateCall() {
+            showToast("Connecting secure proxy call to driver...");
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function toggleMobileNav() { document.getElementById('navMenu').classList.toggle('open'); }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = 'toast show';
+            setTimeout(() => t.className = 'toast', 3200);
+        }
+
+        // Initialize defaults
+        recalculateFare();
+        updateNotificationUI();
+    </script>
+</body>
+</html>
+

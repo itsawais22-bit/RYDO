@@ -1,0 +1,14 @@
+{
+  "name": "rydo-backend",
+  "version": "1.0.0",
+  "description": "RYDO - login / signup / OTP backend with SQLite (zero npm dependencies)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "node --watch --disable-warning=ExperimentalWarning src/server.js",
+    "db:init": "node --disable-warning=ExperimentalWarning scripts/init-db.js",
+    "seed:admin": "node --disable-warning=ExperimentalWarning scripts/seed-admin.js"
+  },
+  "engines": { "node": ">=22.5" },
+  "license": "MIT"
+}
